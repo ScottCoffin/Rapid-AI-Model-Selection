@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+    crossorigin="anonymous">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+    crossorigin="anonymous"></script>
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1"
+    crossorigin="anonymous">
+
+  <link rel="stylesheet" type="text/css" href="./mi2template.css">
+  <link rel="stylesheet" type="text/css" href="./style.css">
+
+  <script>
+    function makeHelpPanel(help_link, docs_link) {
+      return '\
+            <div class="help-panel">\
+              <div class="title"><i class="fa fa-question" aria-hidden="true"></i> Helpful resources</div>\
+              <a href="' + docs_link + '" target="_blank">Technical documentation</a>\
+              <a href="' + help_link + '" target="_blank">Business description</a>\
+            </div>\
+            ';
+    };
+
+    function renderHelpPanels() {
+      var panel = document.getElementsByTagName("help-panel")[0];
+
+      while(panel) {
+        var docs_url = panel.attributes["docs-url"].value; 
+        var help_url = panel.attributes["help-url"].value;
+        
+        var html = makeHelpPanel(help_url, docs_url);
+        panel.outerHTML = html;
+
+        panel = document.getElementsByTagName("help-panel")[0]; 
+        // Not iterating the result because it changes after each iteration
+      }
+    }
+
+    $(document).ready(function(){
+      renderHelpPanels();
+    });
+  </script>
+</head>
+
+<body>
+
+  <div class="container template-home">
+
+    <header>
+      <div class="navbar navbar-default navbar-fixed-top navbar-mi2" role="navigation">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            </a>
+            <a class="navbar-brand navbar-mi2" href="./index.html">modelDown</a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-mi2 nav navbar-nav">
+              <li>
+                <a href="./index.html">
+                  <span class="fa fa-home fa-lg"></span>
+
+                </a>
+              </li>
+
+            </ul>
+            <ul class="nav navbar-nav navbar-right"></ul>
+          </div>
+          <!--/.nav-collapse -->
+        </div>
+        <!--/.container -->
+      </div>
+      <!--/.navbar -->
+    </header>
+
+    <div class="row" style="position: relative; margin-bottom:60px;">
+      <header class="intro-header">
+  <div class="container text-center">
+    <h1>modelDown</h1>
+    <p class="lead">Explore your model!</p>
+  </div>
+</header>
+
+
+<br>
+<br>
+
+<div class="row">
+  <div class="col-md-8">
+    <h3 class="my-3">Basic data information</h3>
+    <ul>
+      <li>102 observations</li>
+      <li>9 columns</li>
+    </ul>
+  </div>
+  <div class="col-md-4" >
+    <h3 class="my-3">Explainers</h3>
+      <ul><li>Random Forest <a href='explainers/Random Forest.rda'>(download)</a></li></ul>
+  </div>
+</div>
+
+<hr>
+
+
+<div class="text-center">
+  <h3 class="my-3">Summaries for numerical variables</h3>
+  <br>
+  <table class="table table-responsive table-bordered table-hover" style="color: black; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">  </th>
+   <th style="text-align:right;"> vars </th>
+   <th style="text-align:right;"> n </th>
+   <th style="text-align:right;"> mean </th>
+   <th style="text-align:right;"> sd </th>
+   <th style="text-align:right;"> median </th>
+   <th style="text-align:right;"> trimmed </th>
+   <th style="text-align:right;"> mad </th>
+   <th style="text-align:right;"> min </th>
+   <th style="text-align:right;"> max </th>
+   <th style="text-align:right;"> range </th>
+   <th style="text-align:right;"> skew </th>
+   <th style="text-align:right;"> kurtosis </th>
+   <th style="text-align:right;"> se </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> bill_length_mm </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:right;"> 102 </td>
+   <td style="text-align:right;"> 0.0013794 </td>
+   <td style="text-align:right;"> 1.0502696 </td>
+   <td style="text-align:right;"> 0.2271621 </td>
+   <td style="text-align:right;"> 0.0015416 </td>
+   <td style="text-align:right;"> 1.277683 </td>
+   <td style="text-align:right;"> -2.1656677 </td>
+   <td style="text-align:right;"> 2.583320 </td>
+   <td style="text-align:right;"> 4.748988 </td>
+   <td style="text-align:right;"> 0.0025043 </td>
+   <td style="text-align:right;"> -0.9492313 </td>
+   <td style="text-align:right;"> 0.1039922 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> bill_depth_mm </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:right;"> 102 </td>
+   <td style="text-align:right;"> -0.0071708 </td>
+   <td style="text-align:right;"> 0.9300783 </td>
+   <td style="text-align:right;"> 0.0017667 </td>
+   <td style="text-align:right;"> 0.0023843 </td>
+   <td style="text-align:right;"> 1.276486 </td>
+   <td style="text-align:right;"> -1.7455119 </td>
+   <td style="text-align:right;"> 2.052920 </td>
+   <td style="text-align:right;"> 3.798432 </td>
+   <td style="text-align:right;"> -0.0890526 </td>
+   <td style="text-align:right;"> -1.0764381 </td>
+   <td style="text-align:right;"> 0.0920915 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> flipper_length_mm </td>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:right;"> 102 </td>
+   <td style="text-align:right;"> -0.0181969 </td>
+   <td style="text-align:right;"> 1.0622472 </td>
+   <td style="text-align:right;"> -0.2782064 </td>
+   <td style="text-align:right;"> -0.0562301 </td>
+   <td style="text-align:right;"> 1.264986 </td>
+   <td style="text-align:right;"> -1.9135475 </td>
+   <td style="text-align:right;"> 2.068153 </td>
+   <td style="text-align:right;"> 3.981700 </td>
+   <td style="text-align:right;"> 0.2875527 </td>
+   <td style="text-align:right;"> -1.2144621 </td>
+   <td style="text-align:right;"> 0.1051781 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> body_mass_g </td>
+   <td style="text-align:right;"> 4 </td>
+   <td style="text-align:right;"> 102 </td>
+   <td style="text-align:right;"> 0.0184659 </td>
+   <td style="text-align:right;"> 1.0822297 </td>
+   <td style="text-align:right;"> -0.1275064 </td>
+   <td style="text-align:right;"> -0.0235859 </td>
+   <td style="text-align:right;"> 1.203233 </td>
+   <td style="text-align:right;"> -1.8755021 </td>
+   <td style="text-align:right;"> 2.619344 </td>
+   <td style="text-align:right;"> 4.494846 </td>
+   <td style="text-align:right;"> 0.3221729 </td>
+   <td style="text-align:right;"> -0.9538633 </td>
+   <td style="text-align:right;"> 0.1071567 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> year </td>
+   <td style="text-align:right;"> 5 </td>
+   <td style="text-align:right;"> 102 </td>
+   <td style="text-align:right;"> 0.0004179 </td>
+   <td style="text-align:right;"> 1.0382355 </td>
+   <td style="text-align:right;"> -0.0355222 </td>
+   <td style="text-align:right;"> 0.0091838 </td>
+   <td style="text-align:right;"> 1.811681 </td>
+   <td style="text-align:right;"> -1.2574843 </td>
+   <td style="text-align:right;"> 1.186440 </td>
+   <td style="text-align:right;"> 2.443924 </td>
+   <td style="text-align:right;"> -0.0549208 </td>
+   <td style="text-align:right;"> -1.6262009 </td>
+   <td style="text-align:right;"> 0.1028006 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> island_Dream </td>
+   <td style="text-align:right;"> 6 </td>
+   <td style="text-align:right;"> 102 </td>
+   <td style="text-align:right;"> 0.0862992 </td>
+   <td style="text-align:right;"> 1.0247081 </td>
+   <td style="text-align:right;"> -0.7496652 </td>
+   <td style="text-align:right;"> 0.0365690 </td>
+   <td style="text-align:right;"> 0.000000 </td>
+   <td style="text-align:right;"> -0.7496652 </td>
+   <td style="text-align:right;"> 1.330051 </td>
+   <td style="text-align:right;"> 2.079716 </td>
+   <td style="text-align:right;"> 0.3940533 </td>
+   <td style="text-align:right;"> -1.8626963 </td>
+   <td style="text-align:right;"> 0.1014612 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> island_Torgersen </td>
+   <td style="text-align:right;"> 7 </td>
+   <td style="text-align:right;"> 102 </td>
+   <td style="text-align:right;"> -0.0387699 </td>
+   <td style="text-align:right;"> 0.9640016 </td>
+   <td style="text-align:right;"> -0.4213840 </td>
+   <td style="text-align:right;"> -0.2854027 </td>
+   <td style="text-align:right;"> 0.000000 </td>
+   <td style="text-align:right;"> -0.4213840 </td>
+   <td style="text-align:right;"> 2.366233 </td>
+   <td style="text-align:right;"> 2.787618 </td>
+   <td style="text-align:right;"> 2.0773428 </td>
+   <td style="text-align:right;"> 2.3385676 </td>
+   <td style="text-align:right;"> 0.0954504 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sex_male </td>
+   <td style="text-align:right;"> 8 </td>
+   <td style="text-align:right;"> 102 </td>
+   <td style="text-align:right;"> 0.0036437 </td>
+   <td style="text-align:right;"> 1.0035551 </td>
+   <td style="text-align:right;"> -0.9755873 </td>
+   <td style="text-align:right;"> -0.0011331 </td>
+   <td style="text-align:right;"> 0.000000 </td>
+   <td style="text-align:right;"> -0.9755873 </td>
+   <td style="text-align:right;"> 1.022044 </td>
+   <td style="text-align:right;"> 1.997631 </td>
+   <td style="text-align:right;"> 0.0386478 </td>
+   <td style="text-align:right;"> -2.0180033 </td>
+   <td style="text-align:right;"> 0.0993668 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sex_unknown </td>
+   <td style="text-align:right;"> 9 </td>
+   <td style="text-align:right;"> 102 </td>
+   <td style="text-align:right;"> -0.0145577 </td>
+   <td style="text-align:right;"> 0.9636632 </td>
+   <td style="text-align:right;"> -0.1814856 </td>
+   <td style="text-align:right;"> -0.1814856 </td>
+   <td style="text-align:right;"> 0.000000 </td>
+   <td style="text-align:right;"> -0.1814856 </td>
+   <td style="text-align:right;"> 5.494063 </td>
+   <td style="text-align:right;"> 5.675548 </td>
+   <td style="text-align:right;"> 5.4887672 </td>
+   <td style="text-align:right;"> 28.4053365 </td>
+   <td style="text-align:right;"> 0.0954169 </td>
+  </tr>
+</tbody>
+</table>
+  <hr>
+</div>
+
+<br>
+<br>
+    </div>
+
+
+  <footer>
+    <div class="footer">
+      <div class="text-center">Site built with <a href="https://github.com/MI2DataLab/modelDown">modelDown</a>.</div>
+      <div class="text-center" style="margin: 0px 0px 5px;">Last updated: 2025-04-22 18:35:22.488935 (session_info: <a href="session_info/session_info.txt">.txt</a>, <a href="session_info/session_info.rda">.rda</a>)</div>
+    </div>
+  </footer>
+
+  </div>
+
+</body>
+</html>

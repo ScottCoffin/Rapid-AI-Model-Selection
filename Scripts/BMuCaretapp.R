@@ -25,27 +25,10 @@ library(skimr)
 ##### load data #####
 set.seed(9650)
 
-# Load finalized dataset.
-data_set <- read_csv("multiVar.csv", guess_max = 10000) 
-
-data_set <- data_set %>% 
-  dplyr::select(c(size.length.um.used.for.conversions, shape, polymer, organism.group, environment, bio.org, effect_f, exposure.duration.d, exposure.route, lvl1_f, dose.mg.L.master, dose.particles.mL.master, dose.um3.mL.master)) %>% 
-    mutate_if(is.character, as.factor) %>% 
-  drop_na(effect_f)
-
-###### Pre-Processing the data  using recipe #####
-set.seed(9650)
-Attri_rec_2 <- 
-    recipe(effect_f ~ ., data = data_set) %>%        # Formula.
-    step_dummy(all_predictors())%>%               # convert nominal data into one or more numeric.
-    step_knnimpute(all_predictors())%>%           # impute missing data using nearest neighbors.
-    step_zv(all_predictors()) %>%                 # remove variables that are highly sparse and unbalanced.
-    step_corr(all_predictors()) %>%               # remove variables that have large absolute correlations with 
-    # other variables.
-    step_center(all_predictors()) %>%             # normalize numeric data to have a mean of zero.
-    step_scale(all_predictors()) %>%              # normalize numeric data to have a standard deviation of one.
-    prep(training = data_set, retain = TRUE)      # train the data recipe
-
+# Load the default example dataset (cars dataset)
+default_data <- mtcars %>%
+  rownames_to_column(var = "car_name") %>%
+  mutate(cyl = as.factor(cyl), gear = as.factor(gear), carb = as.factor(carb))
 
 data_rec_2 <- as.data.frame(juice(Attri_rec_2))
 # add the response variable
@@ -58,7 +41,7 @@ validation_index <- createDataPartition(data_rec_2$effect_f,times= 1,  p= 0.70, 
 data_validation <- data_rec_2[-validation_index,]
 # use the remaining 70% of data to train the models
 data_train <- data_rec_2[validation_index, ]
-# For traing the models  
+# For traing the models
 x_train <- data_train%>%dplyr::select(-effect_f) # Predictors
 y_train <- data_train[["effect_f"]] # Response
 # for validation/test
@@ -67,7 +50,7 @@ y_validation <- data_validation[["effect_f"]]
 
 ##### Construct model grid and define shared settings (Module2) #####
 set.seed(9650)
-mg <- 
+mg <-
     model_grid() %>%
     share_settings(
         y = y_train,
@@ -92,11 +75,11 @@ mg_final <- mg %>%
                                     repeats =5))%>%
     add_model(model_name = "eXtreme Gradient Boosting",
               method = "xgbDART") %>%
-    add_model(model_name = "Neural Network", 
+    add_model(model_name = "Neural Network",
               method = "nnet")%>%
     add_model(model_name = "glmnet",
               method = "glmnet")%>%
-    add_model(model_name = "Random Forest", 
+    add_model(model_name = "Random Forest",
               method = "rf")
 # %>% add_model(model_name = "gbm",
 # method="gbm",
@@ -109,6 +92,22 @@ ui <- fluidPage(theme = shinytheme("slate"),
                 # Application title
                 titlePanel(wellPanel("Find the best predictive model using R/caret package/modelgrid",br(),"BMuCaret")),
                 navbarPage("Workflow ===>",
+                           tabPanel(
+                             "Upload & Preprocess Data",
+                             sidebarLayout(
+                               sidebarPanel(
+                                 fileInput("file", "Upload CSV File", accept = c(".csv")),
+                                 actionButton("process", "Process Data"),
+                                 helpText("If no file is uploaded, the default 'cars' dataset will be used.")
+                               ),
+                               mainPanel(
+                                 tabsetPanel(
+                                   tabPanel("Uploaded Data", tableOutput("uploaded_data")),
+                                   tabPanel("Processed Data", tableOutput("processed_data"))
+                                 )
+                               )
+                             )
+                           ),
                            
                            tabPanel("Exploratory Data Analysis",
                                     tabsetPanel(type = "tabs",
@@ -175,6 +174,55 @@ ui <- fluidPage(theme = shinytheme("slate"),
 ################################# Define server logic #########################
 server <- function(input, output) {
     set.seed(9650)    
+  
+  # Reactive value to store the uploaded dataset or default dataset
+  uploaded_data <- reactive({
+    if (is.null(input$file)) {
+      # Use the default dataset if no file is uploaded
+      default_data
+    } else {
+      # Read the uploaded file
+      read.csv(input$file$datapath)
+    }
+  })
+  
+  # Display the uploaded or default dataset
+  output$uploaded_data <- renderTable({
+    req(uploaded_data())
+    head(uploaded_data())
+  })
+  
+  processed_data <- eventReactive(input$process, {
+    req(uploaded_data())
+    data_set <- uploaded_data()
+    
+    # Preprocess the data using recipe
+    data_set <- data_set %>%
+      mutate_if(is.character, as.factor) %>%
+      drop_na()
+    
+    # Example preprocessing steps (adjust as needed for your dataset)
+    Attri_rec_2 <- recipe(mpg ~ ., data = data_set) %>%
+      step_dummy(all_nominal_predictors()) %>%  # Only apply dummy encoding to categorical variables
+      step_impute_knn(all_predictors()) %>%
+      step_zv(all_predictors()) %>%
+      step_corr(all_numeric_predictors()) %>%  # Only apply correlation filtering to numeric variables
+      step_center(all_numeric_predictors()) %>%  # Center numeric variables
+      step_scale(all_numeric_predictors()) %>%   # Scale numeric variables
+      prep(training = data_set, retain = TRUE)
+    
+    data_rec_2 <- as.data.frame(juice(Attri_rec_2))
+    data_rec_2
+  })
+  
+  
+  # Display the processed dataset
+  output$processed_data <- renderTable({
+    req(processed_data())
+    head(processed_data())
+  })
+  
+  
     # before processing the data
     # data structure
     output$str_ucture <- renderPrint({

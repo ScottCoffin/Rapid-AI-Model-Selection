@@ -1,0 +1,27 @@
+   /* styles.css */
+   .nav-tabs > li > a {
+       font-size: 20px; /* Change this value to increase or decrease font size */
+       color: #007bff; /* Change text color */
+   }
+
+   .nav-tabs > li > a:hover {
+       color: #0056b3; /* Change text color on hover */
+   }
+
+   .nav-tabs > li.active > a {
+       background-color: #007bff; /* Background color of active tab */
+       color: white; /* Text color of active tab */
+   }
+   .navbar-nav > li > a {
+       font-size: 20px; /* Change this value to increase or decrease font size */
+       color: #007bff; /* Change text color */
+   }
+
+   .navbar-nav > li > a:hover {
+       color: #0056b3; /* Change text color on hover */
+   }
+
+   .navbar-nav > li.active > a {
+       background-color: #007bff; /* Background color of active tab */
+       color: white; /* Text color of active tab */
+   }
