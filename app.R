@@ -47,73 +47,6 @@ penguins <- penguins %>%
   dplyr::mutate(dplyr::across(c(where(is.numeric), -response), 
                               ~ ifelse(runif(length(.)) < 0.1, NA, .)))  # 10% chance to replace with NA
 
-# 
-# ######################## Module2:  pre-Processing the data using recipe
-# set.seed(9650)
-# Attri_rec_2 <- 
-#   recipe(response ~ ., data = data_set) %>%        # Formula.
-#   step_unknown(all_nominal_predictors()) %>% 
-#   step_dummy(all_nominal_predictors()) %>%               # convert nominal data into one or more numeric.
-#   step_impute_knn(all_predictors()) %>%           # impute missing data using nearest neighbors.
-#   step_zv(all_predictors()) %>%                 # remove variables that are highly sparse and unbalanced.
-#   step_corr(all_predictors()) %>%               # remove variables that have large absolute correlations with other variables.
-#   step_center(all_predictors()) %>%             # normalize numeric data to have a mean of zero.
-#   step_scale(all_predictors()) %>%              # normalize numeric data to have a standard deviation of one.
-#   prep(training = data_set, retain = TRUE)      # train the data recipe 
-# 
-# data_rec_2 <- as.data.frame(juice(Attri_rec_2))
-# # add the response variable
-# data_rec_2$response <- data_set$response
-# # str(data_rec_2)
-# # Create a Validation Dataset (training data 70% and validation data 30% of the original data)
-# set.seed(9650)
-# validation_index <- createDataPartition(data_rec_2$response,times= 1,  p= 0.70, list=FALSE)
-# # select 30% of the data for validation
-# data_validation <- data_rec_2[-validation_index,]
-# # use the remaining 70% of data to train the models
-# data_train <- data_rec_2[validation_index, ]
-# # For traing the models  
-# x_train <- data_train %>% dplyr::select(-response) # Predictors
-# y_train <- data_train[["response"]] # Response
-# # for validation/test
-# x_validation <- data_validation %>% dplyr::select(-response)
-# y_validation <- data_validation[["response"]]
-# ## Vaiable list
-# variable_list <- colnames(x_validation)
-# 
-# ##############  Module 3 Construct model grid and define shared settings.####################
-# set.seed(9650)
-# mg <-
-#   model_grid() %>%
-#   share_settings(
-#     y = y_train,
-#     x = x_train,
-#     metric = "ROC",
-#     trControl = trainControl(
-#       method = "adaptive_cv",
-#       number = 10, repeats = 5,
-#       adaptive = list(min =3, alpha =0.05, method = "BT", complete = FALSE),
-#       search = "random",
-#       summaryFunction = twoClassSummary,
-#       classProbs = TRUE))
-# 
-# purrr::map_chr(mg$shared_settings, class)
-# ## add models to train
-# mg_final <- mg %>%
-#   add_model(model_name = "LDA",
-#             method = "lda",
-#             custom_control = list(method = "repeatedcv",
-#                                   number = 10,
-#                                   repeats =5))%>%
-#   add_model(model_name = "eXtreme Gradient Boosting",method = "xgbDART")%>%
-#   add_model(model_name = "Neural Network", method = "nnet")%>%
-#   add_model(model_name = "glmnet", method = "glmnet")%>%
-#   add_model(model_name = "Random Forest", method = "rf")
-#%>% add_model(model_name = "gbm",
-# method="gbm", custom_control = list(verbose = FALSE))
-# 
-# list_model <- c(names(mg_final$models))
-
 ################## USER INTERFACE ##################
 ui <- fluidPage(theme = shinytheme("yeti"),
                 tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")),
@@ -176,6 +109,7 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                                                              navlistPanel(
                                                                tabPanel("1- Show info model grid ",verbatimTextOutput("info_modelgrid")),
                                                                tabPanel("2- Performance statistics of the model grid (dotplot) ", 
+                                                                        p("Note that this step can take between 5 and 60+ minutes depending on the size of your dataset. Consider running this app locally to speed up processing."),
                                                                         withSpinner(plotOutput("dotplot", width = 600, height = 600))),
                                                                tabPanel("3- Extract Performance of the model grid ", 
                                                                         #withSpinner(verbatimTextOutput(outputId = "summary"))
@@ -225,41 +159,59 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                                                              tabsetPanel(type = "tabs",
                                                                          tabPanel("Global Interpretation",
                                                                                   navlistPanel(
-                                                                                    tabPanel("1- Plot variable importance", plotOutput("variable_imp", height = "600px"), 
-                                                                                             verbatimTextOutput("condition")),
+                                                                                    tabPanel("1- Plot variable importance", 
+                                                                                            withSpinner(plotOutput("variable_imp", height = "600px")), 
+                                                                                            verbatimTextOutput("condition")
+                                                                                            ),
                                                                                     tabPanel("2- Effect of a feature on predictions", 
-                                                                                             plotOutput("PD_P", height = "600px"), htmlOutput("des")),
-                                                                                    tabPanel("3- Feature Interaction", plotOutput("inter_action", height = "600px")),
+                                                                                             withSpinner(plotOutput("PD_P", height = "600px")), 
+                                                                                             htmlOutput("des")
+                                                                                                         ),
+                                                                                    tabPanel("3- Feature Interaction",
+                                                                                             withSpinner(plotOutput("inter_action", height = "600px"))
+                                                                                                         ),
                                                                                     tabPanel("4- 2-way interactions", 
-                                                                                             plotOutput("two_way_inter", height = "600px"), 
+                                                                                             withSpinner(plotOutput("two_way_inter", height = "600px")), 
                                                                                              verbatimTextOutput("condition2")),
-                                                                                    tabPanel("5- ICE + PDP plots", plotOutput("IC_E")),
+                                                                                    tabPanel("5- ICE + PDP plots", 
+                                                                                             withSpinner(plotOutput("IC_E"))
+                                                                                                         ),
                                                                                     tabPanel("6- Global Surrogate model", 
-                                                                                             plotOutput("surrogate_model", height = "600px")))),
+                                                                                             withSpinner(plotOutput("surrogate_model", height = "600px")))
+                                                                                    )),
                                                                          tabPanel("Local Interpretation",
                                                                                   navlistPanel(
-                                                                                    tabPanel("1- Shapley Values", plotOutput(outputId = "shapley_Values", height = "600px")),
-                                                                                    tabPanel("2- LIME", plotOutput(outputId = "single_plot_lime", height = "600px")))))),
+                                                                                    tabPanel("1- Shapley Values", 
+                                                                                             withSpinner(plotOutput(outputId = "shapley_Values", height = "600px"))
+                                                                                                         ),
+                                                                                    tabPanel("2- LIME", 
+                                                                                             withSpinner(plotOutput(outputId = "single_plot_lime", height = "600px"))
+                                                                                             ))))),
                                                     #### DALEX Packge#######          
                                                     tabPanel("DALEX Package",
                                                              tabsetPanel(type = "tabs",
                                                                          tabPanel("Global Interpretation ",
                                                                                   navlistPanel(
                                                                                     tabPanel("1- Plot variable importance", 
-                                                                                             plotOutput("variable_imp_da", height = "600px"), 
+                                                                                             withSpinner(plotOutput("variable_imp_da", height = "600px")), 
                                                                                              verbatimTextOutput("condition_da")),
-                                                                                    tabPanel("2- Variable response", plotOutput("Vari_resp", height = "600px")),
-                                                                                    tabPanel("3- Accumulated Local Effect (ALE)", plotOutput("ALE_da"), 
+                                                                                    tabPanel("2- Variable response", 
+                                                                                             plotOutput("Vari_resp", height = "600px")),
+                                                                                    tabPanel("3- Accumulated Local Effect (ALE)",
+                                                                                             plotOutput("ALE_da"), 
                                                                                              verbatimTextOutput("condition2_da")),
                                                                                     tabPanel("4- What-If Profiles/ICE analysis ", 
                                                                                              plotOutput("what_if", height = "600px")))),
                                                                          
                                                                          tabPanel("Local Interpretation ",
                                                                                   navlistPanel(
-                                                                                    tabPanel("1- Shapley Values", plotOutput(outputId = "shapley_Values_da", height = "600px"), 
+                                                                                    tabPanel("1- Shapley Values", 
+                                                                                             withSpinner(plotOutput(outputId = "shapley_Values_da", height = "600px")), 
                                                                                              htmlOutput("descri_ption_sharp")),
-                                                                                    tabPanel("2- BreakDown", plotOutput(outputId = "single_plot_brd_da", 
-                                                                                                                         height = "600px"),htmlOutput("descri_ption")))),
+                                                                                    tabPanel("2- BreakDown", 
+                                                                                             withSpinner(plotOutput(outputId = "single_plot_brd_da", 
+                                                                                                        height = "600px")),
+                                                                                             htmlOutput("descri_ption")))),
                                                                          tabPanel("ModelDown Analysis", br(), br(), 
                                                                                   actionButton("do", "Click here to generate an HTML file with
                                                                                   the following summary information: auditor, drifter, model_performance, 
