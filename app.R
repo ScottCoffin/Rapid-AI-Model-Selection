@@ -51,7 +51,7 @@ penguins <- penguins %>%
 ui <- fluidPage(theme = shinytheme("yeti"),
                 tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")),
                 ## Application title
-                titlePanel(wellPanel("Rapid AI Builder App")),
+                titlePanel("Rapid AI Builder App"),
                 tags$div("Contact: Scott.Coffin@oehha.ca.gov", align = 'center', style = 'font-size: 15px; display: block; margin-left: auto; margin-right: auto;'), 
                 navbarPage("Workflow ===>",
                            tabPanel("Exploratory Data Analysis",
@@ -345,9 +345,11 @@ server <- function(input, output, session) {
         metric = "ROC",
         trControl = trainControl(
           method = "adaptive_cv",
-          number = 10, repeats = 5,
+          number = 10,
+          repeats = 5,
           adaptive = list(min =3, alpha =0.05, method = "BT", complete = FALSE),
           search = "random",
+          savePredictions = "final",  # Save predictions for resampling
           summaryFunction = twoClassSummary,
           classProbs = TRUE))
     
@@ -441,50 +443,115 @@ server <- function(input, output, session) {
   })
   ## train all models 
   set.seed(9650)
-  #mg_final_tra <- eventReactive(input$trainBtn, {
+  
   mg_final_tra <- reactive({
     req(mg_final())
     mg_final <- mg_final()
     train_validation_data <- train_validation_data()
-    list_model <- list_model()
     
+    # Train all models
     mg_final_tra <- caret::train(mg_final)
+    
+    # Extract the model fits
+    model_fits <- mg_final_tra$model_fits
+    
+    # Identify successful models (those with NULL in the $error field)
+    successful_models <- names(model_fits)[sapply(model_fits, function(model) is.null(model$error))]
+    
+    # Identify failed models (those with an error message in the $error field)
+    failed_models <- names(model_fits)[sapply(model_fits, function(model) !is.null(model$error))]
+    
+    # Print the results
+    cat("Successful models:\n", paste(successful_models, collapse = ", "), "\n")
+    cat("Failed models:\n", paste(failed_models, collapse = ", "), "\n")
+    
+    # Filter out failed models
+    successful_model_fits <- model_fits[sapply(model_fits, function(model) is.null(model$error))]
+    
+    # filter out unueccesful models
+    mg_final_tra$model_fits <- successful_model_fits
+    
     return(mg_final_tra)
-    })
+  })
+
   
   ## plot to compare
-  output$dotplot <- renderPlot({ 
+  # output$dotplot <- renderPlot({ 
+  #   
+  #   if (is.null(mg_final_tra()$model_fits)) {
+  #     return("No models have been trained.")
+  #   }
+  #   
+  #   mg_final_tra <- mg_final_tra()
+  #   train_validation_data <- train_validation_data()
+  #   x_train <- train_validation_data$x_train
+  #   y_train <- train_validation_data$y_train
+  #   
+  #   mg_final_tra$model_fits %>%
+  #     caret::resamples(.) %>%
+  #     lattice::dotplot(.,
+  #                      par.settings = list(
+  #                        axis.text = list(cex = 1.5),  # Increase size of axis text
+  #                        par.xlab.text = list(cex = 1.8),  # Increase size of x-axis label
+  #                        par.ylab.text = list(cex = 1.8),  # Increase size of y-axis label
+  #                        par.main.text = list(cex = 2)  # Increase size of the main title
+  #                      )
+  #                      ) 
+  # })
+  
+  output$dotplot <- renderPlot({
+    mg_final_tra <- mg_final_tra()
     
-    if (is.null(mg_final_tra()$model_fits)) {
-      return("No models have been trained.")
+    # Check if there are any models
+    if (is.null(mg_final_tra$model_fits) || length(mg_final_tra$model_fits) == 0) {
+      return(plot.new())  # Return an empty plot if no models are available
     }
     
-    mg_final_tra <- mg_final_tra()
-    train_validation_data <- train_validation_data()
-    x_train <- train_validation_data$x_train
-    y_train <- train_validation_data$y_train
+    # Filter out models with errors or incomplete resampling results
+    valid_models <- mg_final_tra$model_fits[sapply(mg_final_tra$model_fits, function(model) {
+      is.null(model$error) && !is.null(model$control) && !is.null(model$control$method)
+    })]
     
-    mg_final_tra$model_fits %>%
-      caret::resamples(.) %>%
-      lattice::dotplot(.,
-                       par.settings = list(
-                         axis.text = list(cex = 1.5),  # Increase size of axis text
-                         par.xlab.text = list(cex = 1.8),  # Increase size of x-axis label
-                         par.ylab.text = list(cex = 1.8),  # Increase size of y-axis label
-                         par.main.text = list(cex = 2)  # Increase size of the main title
-                       )
-                       ) 
+    # Log invalid models
+    invalid_models <- names(mg_final_tra$model_fits)[!sapply(mg_final_tra$model_fits, function(model) {
+      is.null(model$error) && !is.null(model$control) && !is.null(model$control$method)
+    })]
+    
+    if (length(invalid_models) > 0) {
+      message("The following models are invalid and will be excluded: ", paste(invalid_models, collapse = ", "))
+    }
+    
+    # Check if there are at least two valid models
+    if (length(valid_models) < 2) {
+      message("Not enough valid models for resampling. At least two models are required.")
+      return(plot.new())  # Return an empty plot
+    }
+    
+    # Get resampling results for valid models
+    resamples_results <- caret::resamples(valid_models)
+    
+    # Plot the dotplot
+    lattice::dotplot(
+      resamples_results,
+      par.settings = list(
+        axis.text = list(cex = 1.5),  # Increase size of axis text
+        par.xlab.text = list(cex = 1.8),  # Increase size of x-axis label
+        par.ylab.text = list(cex = 1.8),  # Increase size of y-axis label
+        par.main.text = list(cex = 2)  # Increase size of the main title
+      )
+    )
   })
+  
+  
+  
+  
+  
   ## Show the overall summary
   set.seed(9650)
   output$summary <- renderDT({
     mg_final_tra <- mg_final_tra()
-    
-    # mg_final_tra$model_fits %>%
-    #   caret::resamples(.) %>%
-    #   summary(.)
-    
-    # Get resampling results
+
+        # Get resampling results
     resamples_results <- caret::resamples(mg_final_tra$model_fits)
     
     # Create a summary of the resampling results
